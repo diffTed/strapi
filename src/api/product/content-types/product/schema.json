@@ -68,7 +68,7 @@
     },
     "medusa_id": {
       "type": "string",
-      "required": true,
+      "required": false,
       "unique": true,
       "pluginOptions": {
         "i18n": {
@@ -84,7 +84,7 @@
       "type": "enumeration",
       "enum": ["draft", "published", "proposed", "rejected"],
       "default": "draft",
-      "required": true,
+      "required": false,
       "pluginOptions": {
         "i18n": {
           "localized": false

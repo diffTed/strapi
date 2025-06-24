@@ -22,6 +22,19 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
   },
 
   async create(ctx) {
+    // Check if this is a base document creation (not a localization)
+    const isBaseDocument = !ctx.query.relatedEntityId;
+    const locale = ctx.query.locale || "en";
+
+    // For base documents, require medusa_id
+    if (isBaseDocument && locale === "en" && ctx.request.body.data) {
+      if (!ctx.request.body.data.medusa_id) {
+        return ctx.badRequest(
+          "medusa_id is required for base product creation",
+        );
+      }
+    }
+
     // Auto-generate slug if not provided
     if (
       ctx.request.body.data &&
