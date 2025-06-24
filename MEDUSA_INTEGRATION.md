@@ -37,7 +37,7 @@ The `medusa_status` field tracks the publication status from Medusa/Odoo system.
 - **Not editable in Admin Panel**: Content managers cannot modify this field directly
 - **API-only updates**: Can only be set/updated via API calls
 - **Default value**: "draft" (products from Odoo come as drafts)
-- **Valid values**: "draft" | "published"
+- **Valid values**: "draft" | "published" | "proposed" | "rejected"
 
 ## API Endpoints
 
@@ -96,6 +96,8 @@ PUT /api/products/:id/medusa-fields
   "medusa_id": "prod_01234567890",
   "medusa_status": "published"
 }
+
+# Other possible status values: "draft", "proposed", "rejected"
 ```
 
 Note: You can update either field individually or both together.
@@ -134,7 +136,9 @@ curl -X PUT http://localhost:1337/api/products/1/medusa-id \
 # Or set both medusa_id and status
 curl -X PUT http://localhost:1337/api/products/1/medusa-fields \
   -H "Content-Type: application/json" \
-  -d '{"medusa_id": "prod_01234567890", "medusa_status": "draft"}'
+  -d '{"medusa_id": "prod_01234567890", "medusa_status": "published"}'
+
+# Status can be: "draft", "published", "proposed", "rejected"
 ```
 
 ### 4. Use in Frontend

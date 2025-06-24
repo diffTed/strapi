@@ -59,7 +59,7 @@
     "slug": {
       "type": "uid",
       "targetField": "title",
-      "required": true,
+      "required": false,
       "pluginOptions": {
         "i18n": {
           "localized": true
@@ -68,7 +68,7 @@
     },
     "medusa_id": {
       "type": "string",
-      "required": false,
+      "required": true,
       "unique": true,
       "pluginOptions": {
         "i18n": {
@@ -78,7 +78,7 @@
     },
     "medusa_status": {
       "type": "enumeration",
-      "enum": ["draft", "published"],
+      "enum": ["draft", "published", "proposed", "rejected"],
       "default": "draft",
       "required": true,
       "pluginOptions": {

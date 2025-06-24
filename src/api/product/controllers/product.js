@@ -34,6 +34,21 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
       delete ctx.request.body.data.medusa_status;
     }
 
+    // Auto-generate slug if not provided
+    if (
+      ctx.request.body.data &&
+      ctx.request.body.data.title &&
+      !ctx.request.body.data.slug
+    ) {
+      const { title } = ctx.request.body.data;
+      ctx.request.body.data.slug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+        .replace(/\s+/g, "-") // Replace spaces with hyphens
+        .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+        .trim("-"); // Remove leading/trailing hyphens
+    }
+
     const response = await super.create(ctx);
     return response;
   },
@@ -49,6 +64,21 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
       // Only allow medusa_status to be set by API calls with proper authentication
       // Remove it from admin panel requests
       delete ctx.request.body.data.medusa_status;
+    }
+
+    // Auto-generate slug if title is updated but no slug provided
+    if (
+      ctx.request.body.data &&
+      ctx.request.body.data.title &&
+      !ctx.request.body.data.slug
+    ) {
+      const { title } = ctx.request.body.data;
+      ctx.request.body.data.slug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+        .replace(/\s+/g, "-") // Replace spaces with hyphens
+        .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+        .trim("-"); // Remove leading/trailing hyphens
     }
 
     const response = await super.update(ctx);
