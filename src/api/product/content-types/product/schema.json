@@ -73,11 +73,12 @@
       "pluginOptions": {
         "i18n": {
           "localized": false
+        },
+        "content-manager": {
+          "visible": true,
+          "editable": false
         }
-      },
-      "configurable": false,
-      "writable": false,
-      "visible": true
+      }
     },
     "medusa_status": {
       "type": "enumeration",
@@ -87,11 +88,12 @@
       "pluginOptions": {
         "i18n": {
           "localized": false
+        },
+        "content-manager": {
+          "visible": true,
+          "editable": false
         }
-      },
-      "configurable": false,
-      "writable": false,
-      "visible": true
+      }
     }
   }
 }
