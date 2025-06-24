@@ -67,31 +67,26 @@
       }
     },
     "medusa_id": {
-      "type": "string",
+      "type": "customField",
+      "customField": "plugin::read-only-fields.read-only-text",
       "required": false,
-      "unique": true,
       "pluginOptions": {
         "i18n": {
           "localized": false
-        },
-        "content-manager": {
-          "visible": true,
-          "editable": false
         }
       }
     },
     "medusa_status": {
-      "type": "enumeration",
-      "enum": ["draft", "published", "proposed", "rejected"],
+      "type": "customField",
+      "customField": "plugin::read-only-fields.read-only-enum",
+      "options": {
+        "enum": ["draft", "published", "proposed", "rejected"]
+      },
       "default": "draft",
       "required": false,
       "pluginOptions": {
         "i18n": {
           "localized": false
-        },
-        "content-manager": {
-          "visible": true,
-          "editable": false
         }
       }
     }

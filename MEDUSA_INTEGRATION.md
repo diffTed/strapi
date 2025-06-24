@@ -20,7 +20,8 @@ The `medusa_id` field is used to link Strapi content with Medusa 2.0 products. T
 
 - **Read-only in Admin Panel**: Content managers can view but cannot edit this field
 - **API-only updates**: Can only be set/updated via API calls
-- **Unique constraint**: Each `medusa_id` can only be used once
+- **Unique constraint**: Each `medusa_id` can only be used once (enforced at application level)
+- **Shared across locales**: Same `medusa_id` appears in all language versions of a product
 
 ### `medusa_status` Field
 

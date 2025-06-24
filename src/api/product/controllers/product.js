@@ -26,11 +26,24 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
     const isBaseDocument = !ctx.query.relatedEntityId;
     const locale = ctx.query.locale || "en";
 
-    // For base documents, require medusa_id
+    // For base documents, require medusa_id and check uniqueness
     if (isBaseDocument && locale === "en" && ctx.request.body.data) {
       if (!ctx.request.body.data.medusa_id) {
         return ctx.badRequest(
           "medusa_id is required for base product creation",
+        );
+      }
+
+      // Check if medusa_id already exists
+      const existingProduct = await strapi
+        .documents("api::product.product")
+        .findFirst({
+          filters: { medusa_id: ctx.request.body.data.medusa_id },
+        });
+
+      if (existingProduct) {
+        return ctx.badRequest(
+          `Product with medusa_id "${ctx.request.body.data.medusa_id}" already exists`,
         );
       }
     }
@@ -55,6 +68,24 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
   },
 
   async update(ctx) {
+    // Check for medusa_id uniqueness if it's being updated
+    if (ctx.request.body.data && ctx.request.body.data.medusa_id) {
+      const existingProduct = await strapi
+        .documents("api::product.product")
+        .findFirst({
+          filters: {
+            medusa_id: ctx.request.body.data.medusa_id,
+            documentId: { $ne: ctx.params.id },
+          },
+        });
+
+      if (existingProduct) {
+        return ctx.badRequest(
+          `Product with medusa_id "${ctx.request.body.data.medusa_id}" already exists`,
+        );
+      }
+    }
+
     // Auto-generate slug if title is updated but no slug provided
     if (
       ctx.request.body.data &&
