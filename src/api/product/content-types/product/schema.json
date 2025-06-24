@@ -66,7 +66,7 @@
         }
       }
     },
-    "medusaProductId": {
+    "medusa_id": {
       "type": "string",
       "required": false,
       "unique": true,

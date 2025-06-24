@@ -16,9 +16,9 @@ module.exports = createCoreService("api::product.product", ({ strapi }) => ({
     });
   },
 
-  async findByMedusaId(medusaProductId, locale = "en") {
+  async findByMedusaId(medusaId, locale = "en") {
     return await strapi.documents("api::product.product").findFirst({
-      where: { medusaProductId },
+      where: { medusa_id: medusaId },
       locale,
     });
   },
