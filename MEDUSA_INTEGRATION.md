@@ -18,7 +18,7 @@ The `medusa_id` field is used to link Strapi content with Medusa 2.0 products. T
 
 #### Behavior
 
-- **Not editable in Admin Panel**: Content managers cannot modify this field directly
+- **Read-only in Admin Panel**: Content managers can view but cannot edit this field
 - **API-only updates**: Can only be set/updated via API calls
 - **Unique constraint**: Each `medusa_id` can only be used once
 
@@ -34,7 +34,7 @@ The `medusa_status` field tracks the publication status from Medusa/Odoo system.
 
 #### Behavior
 
-- **Not editable in Admin Panel**: Content managers cannot modify this field directly
+- **Read-only in Admin Panel**: Content managers can view but cannot edit this field
 - **API-only updates**: Can only be set/updated via API calls
 - **Default value**: "draft" (products from Odoo come as drafts)
 - **Valid values**: "draft" | "published" | "proposed" | "rejected"
@@ -53,22 +53,25 @@ GET /api/products?locale=es
 # Get single product
 GET /api/products/:id
 
-# Create product (medusa_id and medusa_status will be ignored from admin panel)
+# Create product (medusa_id and medusa_status are read-only in admin panel)
 POST /api/products
 {
   "data": {
     "title": "Product Title",
     "description": "Product description",
     "seoTitle": "SEO Title",
-    "seoDescription": "SEO Description"
+    "seoDescription": "SEO Description",
+    "medusa_id": "prod_01234567890",
+    "medusa_status": "draft"
   }
 }
 
-# Update product (medusa_id and medusa_status will be ignored from admin panel)
+# Update product (medusa_id and medusa_status are read-only in admin panel)
 PUT /api/products/:id
 {
   "data": {
-    "title": "Updated Title"
+    "title": "Updated Title",
+    "medusa_status": "published"
   }
 }
 ```
@@ -191,10 +194,10 @@ const product = {
 
 ## Security Notes
 
-- Both `medusa_id` and `medusa_status` fields are protected from admin panel modifications
+- Both `medusa_id` and `medusa_status` fields are read-only in the admin panel
 - Consider adding authentication to the custom endpoints in production
 - Use API tokens for automated synchronization processes
-- Content managers can view the status but cannot change it directly
+- Content managers can view the fields but cannot edit them directly
 
 ## Future Enhancements
 

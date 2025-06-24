@@ -22,21 +22,6 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
   },
 
   async create(ctx) {
-    // Check if this request is coming from admin panel (has admin path in URL or referer)
-    const isAdminRequest =
-      ctx.request.url.includes("/admin") ||
-      ctx.request.header.referer?.includes("/admin");
-
-    // Only prevent protected Medusa fields from admin panel requests
-    if (isAdminRequest) {
-      if (ctx.request.body.data && ctx.request.body.data.medusa_id) {
-        delete ctx.request.body.data.medusa_id;
-      }
-      if (ctx.request.body.data && ctx.request.body.data.medusa_status) {
-        delete ctx.request.body.data.medusa_status;
-      }
-    }
-
     // Auto-generate slug if not provided
     if (
       ctx.request.body.data &&
@@ -57,21 +42,6 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
   },
 
   async update(ctx) {
-    // Check if this request is coming from admin panel (has admin path in URL or referer)
-    const isAdminRequest =
-      ctx.request.url.includes("/admin") ||
-      ctx.request.header.referer?.includes("/admin");
-
-    // Only prevent protected Medusa fields from admin panel requests
-    if (isAdminRequest) {
-      if (ctx.request.body.data && ctx.request.body.data.medusa_id) {
-        delete ctx.request.body.data.medusa_id;
-      }
-      if (ctx.request.body.data && ctx.request.body.data.medusa_status) {
-        delete ctx.request.body.data.medusa_status;
-      }
-    }
-
     // Auto-generate slug if title is updated but no slug provided
     if (
       ctx.request.body.data &&
