@@ -20,8 +20,4 @@ module.exports = ({ env }) => ({
       locales: ["en", "lt", "lv", "et", "pl", "de"],
     },
   },
-  "read-only-fields": {
-    enabled: true,
-    resolve: "./src/plugins/read-only-fields",
-  },
 });
