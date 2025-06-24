@@ -33,5 +33,23 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "GET",
+      path: "/products/by-medusa-id/:medusa_id",
+      handler: "product.findByMedusaId",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: "POST",
+      path: "/products/upsert",
+      handler: "product.upsertByMedusaId",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

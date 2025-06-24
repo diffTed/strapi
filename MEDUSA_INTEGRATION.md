@@ -79,7 +79,35 @@ PUT /api/products/:id
 
 ### Custom Medusa Integration Endpoints
 
-#### Set Medusa ID
+#### Find Product by Medusa ID
+
+Get a product by its Medusa ID (returns all localizations):
+
+```bash
+GET /api/products/by-medusa-id/:medusa_id
+```
+
+#### Upsert Product (Recommended for Sync)
+
+Creates or updates a product based on medusa_id:
+
+```bash
+POST /api/products/upsert
+{
+  "medusa_id": "prod_01234567890",
+  "locale": "en",
+  "title": "Product Title",
+  "description": "Product description",
+  "medusa_status": "published"
+}
+```
+
+This endpoint will:
+
+- Create a new product if `medusa_id` doesn't exist (must use `locale: "en"`)
+- Update existing product's localization if it exists
+
+#### Set Medusa ID (Legacy)
 
 Used to link a Strapi product with a Medusa product:
 
@@ -90,7 +118,7 @@ PUT /api/products/:id/medusa-id
 }
 ```
 
-#### Update Medusa Fields
+#### Update Medusa Fields (Legacy)
 
 Used to update both medusa_id and medusa_status:
 
@@ -106,7 +134,7 @@ PUT /api/products/:id/medusa-fields
 
 Note: You can update either field individually or both together.
 
-#### Sync with Medusa
+#### Sync with Medusa (Legacy)
 
 Endpoint for future Medusa synchronization (to be implemented):
 
@@ -116,18 +144,64 @@ POST /api/products/sync-medusa
 
 ## Integration Workflow
 
-### 1. Create Product in Medusa
+### Recommended: Automatic Sync via Upsert API
+
+For automated synchronization from Medusa to Strapi:
+
+#### 1. Create Base Product (English)
+
+```bash
+curl -X POST http://localhost:1337/api/products/upsert \
+  -H "Content-Type: application/json" \
+  -d '{
+    "medusa_id": "prod_01234567890",
+    "locale": "en",
+    "title": "Product Title",
+    "description": "Product description",
+    "medusa_status": "published"
+  }'
+```
+
+#### 2. Add Other Language Versions
+
+```bash
+# Spanish version
+curl -X POST http://localhost:1337/api/products/upsert \
+  -H "Content-Type: application/json" \
+  -d '{
+    "medusa_id": "prod_01234567890",
+    "locale": "es",
+    "title": "Título del Producto",
+    "description": "Descripción del producto"
+  }'
+
+# French version
+curl -X POST http://localhost:1337/api/products/upsert \
+  -H "Content-Type: application/json" \
+  -d '{
+    "medusa_id": "prod_01234567890",
+    "locale": "fr",
+    "title": "Titre du Produit",
+    "description": "Description du produit"
+  }'
+```
+
+This approach creates **one product document** with **multiple localizations**, not separate products.
+
+### Manual: Create Products via Admin Panel
+
+#### 1. Create Product in Medusa
 
 1. Create your product in Medusa 2.0
 2. Note the product ID (e.g., `prod_01234567890`)
 
-### 2. Create Content in Strapi
+#### 2. Create Content in Strapi
 
 1. Create the product content in Strapi admin panel
 2. Add title, description, SEO fields in multiple languages
 3. Save the product (without medusa_id)
 
-### 3. Link Products
+#### 3. Link Products
 
 Use the API to link them and set initial status:
 

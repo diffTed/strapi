@@ -67,6 +67,89 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
     return response;
   },
 
+  // Helper method to find product by medusa_id
+  async findByMedusaId(ctx) {
+    const { medusa_id } = ctx.params;
+
+    if (!medusa_id) {
+      return ctx.badRequest("medusa_id is required");
+    }
+
+    try {
+      const product = await strapi.documents("api::product.product").findFirst({
+        filters: { medusa_id },
+        populate: "*",
+      });
+
+      if (!product) {
+        return ctx.notFound(`Product with medusa_id "${medusa_id}" not found`);
+      }
+
+      return { data: product };
+    } catch (error) {
+      ctx.badRequest("Failed to find product", { error: error.message });
+    }
+  },
+
+  // Upsert method for Medusa sync - creates or updates product
+  async upsertByMedusaId(ctx) {
+    const { medusa_id, locale = "en", ...productData } = ctx.request.body;
+
+    if (!medusa_id) {
+      return ctx.badRequest("medusa_id is required");
+    }
+
+    try {
+      // Check if product already exists
+      const existingProduct = await strapi
+        .documents("api::product.product")
+        .findFirst({
+          filters: { medusa_id },
+        });
+
+      if (existingProduct) {
+        // Product exists - update the specific locale
+        const updatedProduct = await strapi
+          .documents("api::product.product")
+          .update({
+            documentId: existingProduct.documentId,
+            locale,
+            data: productData,
+          });
+
+        return { data: updatedProduct, action: "updated" };
+      } else {
+        // Product doesn't exist - create new base document
+        if (locale !== "en") {
+          return ctx.badRequest(
+            "New products must be created in the default locale (en) first",
+          );
+        }
+
+        // Auto-generate slug if not provided
+        if (productData.title && !productData.slug) {
+          productData.slug = productData.title
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, "")
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-")
+            .trim("-");
+        }
+
+        const newProduct = await strapi
+          .documents("api::product.product")
+          .create({
+            data: { medusa_id, ...productData },
+            locale,
+          });
+
+        return { data: newProduct, action: "created" };
+      }
+    } catch (error) {
+      ctx.badRequest("Failed to upsert product", { error: error.message });
+    }
+  },
+
   async update(ctx) {
     // Check for medusa_id uniqueness if it's being updated
     if (ctx.request.body.data && ctx.request.body.data.medusa_id) {

@@ -72,10 +72,6 @@
       "pluginOptions": {
         "i18n": {
           "localized": false
-        },
-        "content-manager": {
-          "visible": true,
-          "editable": false
         }
       }
     },
@@ -87,10 +83,6 @@
       "pluginOptions": {
         "i18n": {
           "localized": false
-        },
-        "content-manager": {
-          "visible": true,
-          "editable": false
         }
       }
     }
