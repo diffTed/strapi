@@ -22,16 +22,19 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
   },
 
   async create(ctx) {
-    // Prevent protected Medusa fields from being set via admin panel
-    if (ctx.request.body.data && ctx.request.body.data.medusa_id) {
-      // Only allow medusa_id to be set by API calls with proper authentication
-      // Remove it from admin panel requests
-      delete ctx.request.body.data.medusa_id;
-    }
-    if (ctx.request.body.data && ctx.request.body.data.medusa_status) {
-      // Only allow medusa_status to be set by API calls with proper authentication
-      // Remove it from admin panel requests
-      delete ctx.request.body.data.medusa_status;
+    // Check if this request is coming from admin panel (has admin path in URL or referer)
+    const isAdminRequest =
+      ctx.request.url.includes("/admin") ||
+      ctx.request.header.referer?.includes("/admin");
+
+    // Only prevent protected Medusa fields from admin panel requests
+    if (isAdminRequest) {
+      if (ctx.request.body.data && ctx.request.body.data.medusa_id) {
+        delete ctx.request.body.data.medusa_id;
+      }
+      if (ctx.request.body.data && ctx.request.body.data.medusa_status) {
+        delete ctx.request.body.data.medusa_status;
+      }
     }
 
     // Auto-generate slug if not provided
@@ -54,16 +57,19 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
   },
 
   async update(ctx) {
-    // Prevent protected Medusa fields from being modified via admin panel
-    if (ctx.request.body.data && ctx.request.body.data.medusa_id) {
-      // Only allow medusa_id to be set by API calls with proper authentication
-      // Remove it from admin panel requests
-      delete ctx.request.body.data.medusa_id;
-    }
-    if (ctx.request.body.data && ctx.request.body.data.medusa_status) {
-      // Only allow medusa_status to be set by API calls with proper authentication
-      // Remove it from admin panel requests
-      delete ctx.request.body.data.medusa_status;
+    // Check if this request is coming from admin panel (has admin path in URL or referer)
+    const isAdminRequest =
+      ctx.request.url.includes("/admin") ||
+      ctx.request.header.referer?.includes("/admin");
+
+    // Only prevent protected Medusa fields from admin panel requests
+    if (isAdminRequest) {
+      if (ctx.request.body.data && ctx.request.body.data.medusa_id) {
+        delete ctx.request.body.data.medusa_id;
+      }
+      if (ctx.request.body.data && ctx.request.body.data.medusa_status) {
+        delete ctx.request.body.data.medusa_status;
+      }
     }
 
     // Auto-generate slug if title is updated but no slug provided
