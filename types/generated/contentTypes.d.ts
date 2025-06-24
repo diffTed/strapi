@@ -401,13 +401,21 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::product.product'
     >;
-    medusaProductId: Schema.Attribute.String &
+    medusa_id: Schema.Attribute.String &
       Schema.Attribute.Unique &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
           localized: false;
         };
       }>;
+    medusa_status: Schema.Attribute.Enumeration<['draft', 'published']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: false;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<'draft'>;
     publishedAt: Schema.Attribute.DateTime;
     seoDescription: Schema.Attribute.Text &
       Schema.Attribute.SetPluginOptions<{
