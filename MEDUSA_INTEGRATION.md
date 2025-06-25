@@ -42,7 +42,9 @@ The `medusa_status` field tracks the publication status from Medusa/Odoo system.
 
 ## API Endpoints
 
-### Standard Product Operations
+### Product Endpoints
+
+#### Standard Product Operations
 
 ```bash
 # Get all products
@@ -142,6 +144,44 @@ Endpoint for future Medusa synchronization (to be implemented):
 POST /api/products/sync-medusa
 ```
 
+### Category Endpoints
+
+#### Standard Category Operations
+
+```bash
+# Get all categories
+GET /api/categories
+
+# Get categories in specific language
+GET /api/categories?locale=es
+
+# Get single category with relations
+GET /api/categories/:id?populate=parent_category,child_categories,products
+```
+
+#### Medusa Integration Endpoint
+
+##### Sync Category from Medusa (Recommended)
+
+Create or update a category when syncing from Medusa:
+
+```bash
+POST /api/categories/sync-from-medusa
+{
+  "medusa_id": "pcat_01234567890",
+  "name": "Category Name",
+  "description": "Category description",
+  "medusa_handle": "category-handle",
+  "parent_medusa_id": "pcat_parent123"  // optional for subcategories
+}
+```
+
+**Note**: Categories are managed in Medusa. This endpoint is used when:
+
+- Syncing all categories from Medusa
+- Syncing individual products (with their category data)
+- Initial category setup
+
 ## Integration Workflow
 
 ### Recommended: Automatic Sync via Upsert API
@@ -187,6 +227,41 @@ curl -X POST http://localhost:1337/api/products/upsert \
 ```
 
 This approach creates **one product document** with **multiple localizations**, not separate products.
+
+### Category Sync from Medusa
+
+For automated category synchronization from Medusa to Strapi:
+
+#### 1. Sync Parent Categories First
+
+```bash
+curl -X POST http://localhost:1337/api/categories/sync-from-medusa \
+  -H "Content-Type: application/json" \
+  -d '{
+    "medusa_id": "pcat_clothing",
+    "name": "Clothing",
+    "description": "All clothing items",
+    "medusa_handle": "clothing"
+  }'
+```
+
+#### 2. Sync Child Categories
+
+```bash
+curl -X POST http://localhost:1337/api/categories/sync-from-medusa \
+  -H "Content-Type: application/json" \
+  -d '{
+    "medusa_id": "pcat_shirts",
+    "name": "Shirts",
+    "description": "All shirt types",
+    "medusa_handle": "shirts",
+    "parent_medusa_id": "pcat_clothing"
+  }'
+```
+
+#### 3. Categories Show on Products
+
+Categories are automatically linked to products and visible in the admin panel when you view any product.
 
 ### Manual: Create Products via Admin Panel
 
