@@ -4,8 +4,8 @@ module.exports = {
   routes: [
     {
       method: "POST",
-      path: "/categories/sync-from-medusa",
-      handler: "category.syncFromMedusa",
+      path: "/categories/upsert",
+      handler: "category.upsertByMedusaId",
       config: {
         policies: [],
         middlewares: [],
