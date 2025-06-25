@@ -99,6 +99,13 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
       return ctx.badRequest("medusa_id is required");
     }
 
+    // Debug logging
+    console.log(`🔄 Upsert request for ${medusa_id}:`, {
+      medusa_id,
+      locale,
+      productData: JSON.stringify(productData, null, 2),
+    });
+
     try {
       // Check if product already exists
       const existingProduct = await strapi
@@ -109,13 +116,32 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
 
       if (existingProduct) {
         // Product exists - update the specific locale
+        // For base locale (en), include non-localized fields like medusa_status
+        const updateData = { ...productData };
+        if (locale === "en") {
+          // Only update non-localized fields for base locale
+          updateData.medusa_id = medusa_id; // Ensure medusa_id is preserved
+          // medusa_status is included in productData if provided
+        }
+
+        console.log(
+          `📝 Updating product ${medusa_id} with data:`,
+          JSON.stringify(updateData, null, 2),
+        );
+
         const updatedProduct = await strapi
           .documents("api::product.product")
           .update({
             documentId: existingProduct.documentId,
             locale,
-            data: productData,
+            data: updateData,
           });
+
+        console.log(`✅ Updated product ${medusa_id}:`, {
+          documentId: updatedProduct.documentId,
+          medusa_status: updatedProduct.medusa_status,
+          title: updatedProduct.title,
+        });
 
         return { data: updatedProduct, action: "updated" };
       } else {
