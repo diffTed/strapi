@@ -18,9 +18,9 @@ async function main() {
   console.log("🚀 Starting Railway-compatible attribute population...");
 
   try {
-    // Load Strapi
-    const Strapi = require("@strapi/strapi");
-    const app = await Strapi().load();
+    // Load Strapi - Updated for Strapi 5
+    const { createStrapi } = require("@strapi/core");
+    const app = await createStrapi().load();
 
     console.log("✅ Strapi loaded successfully");
 
