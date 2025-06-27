@@ -19,7 +19,6 @@
     "key": {
       "type": "string",
       "required": true,
-      "unique": true,
       "pluginOptions": {
         "i18n": {
           "localized": false

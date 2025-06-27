@@ -9,8 +9,8 @@
  * 2. In another terminal: node scripts/populate-all-attributes.js
  */
 
-const { completeAttributeData } = require('./complete-attribute-data');
-const { completeValueTranslations } = require('./complete-value-translations');
+const { completeAttributeData } = require("./complete-attribute-data");
+const { completeValueTranslations } = require("./complete-value-translations");
 
 async function populateAttributes() {
   let strapi;
@@ -21,11 +21,11 @@ async function populateAttributes() {
       strapi = global.strapi;
     } else {
       // Create a Strapi instance for standalone execution
-      const Strapi = require('@strapi/strapi');
+      const Strapi = require("@strapi/strapi");
       strapi = await Strapi().load();
     }
 
-    console.log('Starting attribute population...');
+    console.log("Starting attribute population...");
 
     // Get services
     const attributeService = strapi.entityService;
@@ -34,150 +34,173 @@ async function populateAttributes() {
     let createdValuesCount = 0;
 
     // Create attributes with translations
-    for (const attributeData of completeAttributeData) {
-      console.log(`Creating attribute: ${attributeData.key}`);
+    for (const [attributeKey, attributeData] of Object.entries(
+      completeAttributeData,
+    )) {
+      console.log(`Creating attribute: ${attributeKey}`);
 
       try {
-        // Check if attribute already exists
-        const existingAttribute = await attributeService.findMany('api::attribute.attribute', {
-          filters: { key: attributeData.key },
-          limit: 1
-        });
+        // Check if attribute already exists in any language
+        const existingAttributes = await attributeService.findMany(
+          "api::attribute.attribute",
+          {
+            filters: { key: attributeKey },
+            locale: "all",
+          },
+        );
 
-        let attribute;
-        if (existingAttribute && existingAttribute.length > 0) {
-          console.log(`  - Attribute ${attributeData.key} already exists, skipping...`);
-          attribute = existingAttribute[0];
-        } else {
-          // Create the attribute
-          attribute = await attributeService.create('api::attribute.attribute', {
-            data: {
-              key: attributeData.key,
-              category: attributeData.category,
-              subcategory: attributeData.subcategory,
-              selectionType: attributeData.selectionType,
-              sortOrder: attributeData.sortOrder,
-              isActive: attributeData.isActive,
-              label: attributeData.label,
-              description: attributeData.description,
-              locale: 'en',
-              publishedAt: new Date()
-            }
-          });
+        if (existingAttributes && existingAttributes.length > 0) {
+          console.log(
+            `  - Attribute ${attributeKey} already exists in ${existingAttributes.length} languages, skipping...`,
+          );
+          continue;
+        }
 
-          console.log(`  - Created attribute: ${attribute.key}`);
-          createdAttributesCount++;
+        // Create the attribute in all languages
+        const languages = ["en", "lt", "lv", "et", "pl", "de", "ru"];
+        let defaultAttribute = null;
 
-          // Create localizations for other languages
-          const languages = ['lt', 'lv', 'et', 'pl', 'de', 'ru'];
-          for (const lang of languages) {
-            try {
-              await attributeService.create('api::attribute.attribute', {
+        for (const lang of languages) {
+          try {
+            const attributeEntry = await attributeService.create(
+              "api::attribute.attribute",
+              {
                 data: {
-                  key: attributeData.key,
+                  key: attributeKey,
                   category: attributeData.category,
-                  subcategory: attributeData.subcategory,
+                  subcategory: attributeData.subcategory || null,
                   selectionType: attributeData.selectionType,
                   sortOrder: attributeData.sortOrder,
-                  isActive: attributeData.isActive,
-                  label: attributeData.label,
-                  description: attributeData.description,
-                  locale: lang,
-                  localizations: [attribute.id],
-                  publishedAt: new Date()
-                }
-              });
+                  isActive: true,
+                  label: attributeData.labels[lang].label,
+                  description: attributeData.labels[lang].description,
+                  publishedAt: new Date(),
+                },
+                locale: lang,
+              },
+            );
+
+            if (lang === "en") {
+              defaultAttribute = attributeEntry;
+              console.log(`  - Created attribute: ${attributeKey} (${lang})`);
+              createdAttributesCount++;
+            } else {
               console.log(`    - Created ${lang} localization`);
-            } catch (locError) {
-              console.warn(`    - Warning: Could not create ${lang} localization:`, locError.message);
             }
+          } catch (langError) {
+            console.warn(
+              `    - Warning: Could not create ${lang} version:`,
+              langError.message,
+            );
           }
+        }
+
+        if (!defaultAttribute) {
+          console.error(
+            `  - Failed to create base attribute for ${attributeKey}`,
+          );
+          continue;
         }
 
         // Create attribute values
         if (attributeData.values && attributeData.values.length > 0) {
-          console.log(`  - Creating ${attributeData.values.length} values for ${attributeData.key}`);
+          console.log(
+            `  - Creating ${attributeData.values.length} values for ${attributeKey}`,
+          );
 
           for (let i = 0; i < attributeData.values.length; i++) {
             const valueKey = attributeData.values[i];
             const translations = completeValueTranslations[valueKey];
 
             if (!translations) {
-              console.warn(`    - Warning: No translations found for value: ${valueKey}`);
+              console.warn(
+                `    - Warning: No translations found for value: ${valueKey}`,
+              );
               continue;
             }
 
             try {
-              // Check if value already exists
-              const existingValue = await attributeService.findMany('api::attribute-value.attribute-value', {
-                filters: {
-                  key: valueKey,
-                  attribute: attribute.id
+              // Check if value already exists in any language
+              const existingValues = await attributeService.findMany(
+                "api::attribute-value.attribute-value",
+                {
+                  filters: {
+                    key: valueKey,
+                    attribute: defaultAttribute.id,
+                  },
+                  locale: "all",
                 },
-                limit: 1
-              });
+              );
 
-              if (existingValue && existingValue.length > 0) {
-                console.log(`    - Value ${valueKey} already exists, skipping...`);
+              if (existingValues && existingValues.length > 0) {
+                console.log(
+                  `    - Value ${valueKey} already exists, skipping...`,
+                );
                 continue;
               }
 
-              // Create the value in English
-              const attributeValue = await attributeService.create('api::attribute-value.attribute-value', {
-                data: {
-                  key: valueKey,
-                  attribute: attribute.id,
-                  sortOrder: i + 1,
-                  isActive: true,
-                  label: translations.en,
-                  locale: 'en',
-                  publishedAt: new Date()
-                }
-              });
-
-              console.log(`      - Created value: ${valueKey} (${translations.en})`);
-              createdValuesCount++;
-
-              // Create localizations for other languages
-              const languages = ['lt', 'lv', 'et', 'pl', 'de', 'ru'];
+              // Create the value in all languages
+              let defaultValue = null;
               for (const lang of languages) {
                 if (translations[lang]) {
                   try {
-                    await attributeService.create('api::attribute-value.attribute-value', {
-                      data: {
-                        key: valueKey,
-                        attribute: attribute.id,
-                        sortOrder: i + 1,
-                        isActive: true,
-                        label: translations[lang],
+                    const valueEntry = await attributeService.create(
+                      "api::attribute-value.attribute-value",
+                      {
+                        data: {
+                          key: valueKey,
+                          attribute: defaultAttribute.id,
+                          sortOrder: i + 1,
+                          isActive: true,
+                          label: translations[lang],
+                          publishedAt: new Date(),
+                        },
                         locale: lang,
-                        localizations: [attributeValue.id],
-                        publishedAt: new Date()
-                      }
-                    });
-                    console.log(`        - Created ${lang} localization: ${translations[lang]}`);
-                  } catch (locError) {
-                    console.warn(`        - Warning: Could not create ${lang} localization:`, locError.message);
+                      },
+                    );
+
+                    if (lang === "en") {
+                      defaultValue = valueEntry;
+                      console.log(
+                        `      - Created value: ${valueKey} (${translations[lang]})`,
+                      );
+                      createdValuesCount++;
+                    } else {
+                      console.log(
+                        `        - Created ${lang} localization: ${translations[lang]}`,
+                      );
+                    }
+                  } catch (valueLangError) {
+                    console.warn(
+                      `        - Warning: Could not create ${lang} value:`,
+                      valueLangError.message,
+                    );
                   }
                 }
               }
             } catch (valueError) {
-              console.error(`    - Error creating value ${valueKey}:`, valueError.message);
+              console.error(
+                `    - Error creating value ${valueKey}:`,
+                valueError.message,
+              );
             }
           }
         }
-
       } catch (error) {
-        console.error(`Error processing attribute ${attributeData.key}:`, error.message);
+        console.error(
+          `Error processing attribute ${attributeKey}:`,
+          error.message,
+        );
       }
     }
 
-    console.log('\n✅ Attribute population completed!');
-    console.log(`📊 Created ${createdAttributesCount} attributes and ${createdValuesCount} values`);
-    console.log('\nYou can now use these attributes in your products.');
-
+    console.log("\n✅ Attribute population completed!");
+    console.log(
+      `📊 Created ${createdAttributesCount} attributes and ${createdValuesCount} values`,
+    );
+    console.log("\nYou can now use these attributes in your products.");
   } catch (error) {
-    console.error('❌ Error during population:', error);
+    console.error("❌ Error during population:", error);
   } finally {
     // Only destroy if we created the instance
     if (strapi && !global.strapi) {

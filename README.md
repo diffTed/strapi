@@ -1,3 +1,10 @@
+# Run locally
+
+railway login
+railway link
+railway run npm run develop - runs locally
+railway run npm run populate:attributes - populates database with attributes
+
 # Strapi example
 
 This example deploys self-hosted version of [Strapi](https://strapi.io/). Internally it uses a PostgreSQL database to store the data.
