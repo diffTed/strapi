@@ -17,7 +17,7 @@ module.exports = ({ env }) => ({
     enabled: true,
     config: {
       defaultLocale: "en",
-      locales: ["en", "lt", "lv", "et", "pl", "de"],
+      locales: ["en", "lt", "lv", "et", "pl", "de", "ru"],
     },
   },
 });

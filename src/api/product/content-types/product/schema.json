@@ -77,7 +77,7 @@
     },
     "medusa_status": {
       "type": "enumeration",
-      "enum": ["draft", "published", "proposed", "rejected"],
+      "enum": ["draft", "proposed", "published", "rejected"],
       "default": "draft",
       "required": false,
       "pluginOptions": {
@@ -90,7 +90,26 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::category.category",
-      "inversedBy": "products",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "attributes": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::attribute.attribute",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "attributeValues": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::attribute-value.attribute-value",
       "pluginOptions": {
         "i18n": {
           "localized": false
