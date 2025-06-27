@@ -27,9 +27,6 @@ async function populateAttributes() {
 
     console.log("Starting attribute population...");
 
-    // Get services
-    const attributeService = strapi.entityService;
-
     let createdAttributesCount = 0;
     let createdValuesCount = 0;
 
@@ -41,13 +38,12 @@ async function populateAttributes() {
 
       try {
         // Check if attribute already exists in any language
-        const existingAttributes = await attributeService.findMany(
-          "api::attribute.attribute",
-          {
+        const existingAttributes = await strapi
+          .documents("api::attribute.attribute")
+          .findMany({
             filters: { key: attributeKey },
             locale: "all",
-          },
-        );
+          });
 
         if (existingAttributes && existingAttributes.length > 0) {
           console.log(
@@ -56,53 +52,53 @@ async function populateAttributes() {
           continue;
         }
 
-        // Create the attribute in all languages
-        const languages = ["en", "lt", "lv", "et", "pl", "de", "ru"];
-        let defaultAttribute = null;
+        // Step 1: Create the base attribute in English
+        const baseAttribute = await strapi
+          .documents("api::attribute.attribute")
+          .create({
+            data: {
+              key: attributeKey,
+              category: attributeData.category,
+              subcategory: attributeData.subcategory || null,
+              selectionType: attributeData.selectionType,
+              sortOrder: attributeData.sortOrder,
+              isActive: true,
+              label: attributeData.labels.en.label,
+              description: attributeData.labels.en.description,
+            },
+            locale: "en",
+          });
 
-        for (const lang of languages) {
+        console.log(`  - Created base attribute: ${attributeKey} (en)`);
+        createdAttributesCount++;
+
+        // Step 2: Create localizations for other languages
+        const otherLanguages = ["lt", "lv", "et", "pl", "de", "ru"];
+        for (const lang of otherLanguages) {
           try {
-            const attributeEntry = await attributeService.create(
-              "api::attribute.attribute",
-              {
-                data: {
-                  key: attributeKey,
-                  category: attributeData.category,
-                  subcategory: attributeData.subcategory || null,
-                  selectionType: attributeData.selectionType,
-                  sortOrder: attributeData.sortOrder,
-                  isActive: true,
-                  label: attributeData.labels[lang].label,
-                  description: attributeData.labels[lang].description,
-                  publishedAt: new Date(),
-                },
-                locale: lang,
+            await strapi.documents("api::attribute.attribute").create({
+              data: {
+                key: attributeKey,
+                category: attributeData.category,
+                subcategory: attributeData.subcategory || null,
+                selectionType: attributeData.selectionType,
+                sortOrder: attributeData.sortOrder,
+                isActive: true,
+                label: attributeData.labels[lang].label,
+                description: attributeData.labels[lang].description,
               },
-            );
-
-            if (lang === "en") {
-              defaultAttribute = attributeEntry;
-              console.log(`  - Created attribute: ${attributeKey} (${lang})`);
-              createdAttributesCount++;
-            } else {
-              console.log(`    - Created ${lang} localization`);
-            }
+              locale: lang,
+            });
+            console.log(`    - Created ${lang} localization`);
           } catch (langError) {
             console.warn(
-              `    - Warning: Could not create ${lang} version:`,
+              `    - Warning: Could not create ${lang} localization:`,
               langError.message,
             );
           }
         }
 
-        if (!defaultAttribute) {
-          console.error(
-            `  - Failed to create base attribute for ${attributeKey}`,
-          );
-          continue;
-        }
-
-        // Create attribute values
+        // Step 3: Create attribute values
         if (attributeData.values && attributeData.values.length > 0) {
           console.log(
             `  - Creating ${attributeData.values.length} values for ${attributeKey}`,
@@ -121,16 +117,15 @@ async function populateAttributes() {
 
             try {
               // Check if value already exists in any language
-              const existingValues = await attributeService.findMany(
-                "api::attribute-value.attribute-value",
-                {
+              const existingValues = await strapi
+                .documents("api::attribute-value.attribute-value")
+                .findMany({
                   filters: {
                     key: valueKey,
-                    attribute: defaultAttribute.id,
+                    attribute: baseAttribute.id,
                   },
                   locale: "all",
-                },
-              );
+                });
 
               if (existingValues && existingValues.length > 0) {
                 console.log(
@@ -139,37 +134,44 @@ async function populateAttributes() {
                 continue;
               }
 
-              // Create the value in all languages
-              let defaultValue = null;
-              for (const lang of languages) {
+              // Step 3a: Create the base value in English
+              const baseValue = await strapi
+                .documents("api::attribute-value.attribute-value")
+                .create({
+                  data: {
+                    key: valueKey,
+                    attribute: baseAttribute.id,
+                    sortOrder: i + 1,
+                    isActive: true,
+                    label: translations.en,
+                  },
+                  locale: "en",
+                });
+
+              console.log(
+                `      - Created base value: ${valueKey} (${translations.en})`,
+              );
+              createdValuesCount++;
+
+              // Step 3b: Create localizations for other languages
+              for (const lang of otherLanguages) {
                 if (translations[lang]) {
                   try {
-                    const valueEntry = await attributeService.create(
-                      "api::attribute-value.attribute-value",
-                      {
+                    await strapi
+                      .documents("api::attribute-value.attribute-value")
+                      .create({
                         data: {
                           key: valueKey,
-                          attribute: defaultAttribute.id,
+                          attribute: baseAttribute.id,
                           sortOrder: i + 1,
                           isActive: true,
                           label: translations[lang],
-                          publishedAt: new Date(),
                         },
                         locale: lang,
-                      },
+                      });
+                    console.log(
+                      `        - Created ${lang} localization: ${translations[lang]}`,
                     );
-
-                    if (lang === "en") {
-                      defaultValue = valueEntry;
-                      console.log(
-                        `      - Created value: ${valueKey} (${translations[lang]})`,
-                      );
-                      createdValuesCount++;
-                    } else {
-                      console.log(
-                        `        - Created ${lang} localization: ${translations[lang]}`,
-                      );
-                    }
                   } catch (valueLangError) {
                     console.warn(
                       `        - Warning: Could not create ${lang} value:`,
