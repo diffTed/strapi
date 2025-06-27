@@ -25,10 +25,17 @@ async function populateAttributes() {
       strapi = await Strapi().load();
     }
 
-    console.log("Starting attribute population...");
+    console.log("🚀 Starting attribute population...");
 
-    let createdAttributesCount = 0;
-    let createdValuesCount = 0;
+    // Clear existing data first
+    console.log("🧹 Clearing existing attribute and attribute-value data...");
+    await strapi.db
+      .query("api::attribute-value.attribute-value")
+      .deleteMany({});
+    await strapi.db.query("api::attribute.attribute").deleteMany({});
+    console.log("✅ Cleared existing data");
+
+    const languages = ["en", "lt", "lv", "et", "pl", "de", "ru"];
 
     // Create attributes with translations
     for (const [attributeKey, attributeData] of Object.entries(
@@ -37,183 +44,140 @@ async function populateAttributes() {
       console.log(`Creating attribute: ${attributeKey}`);
 
       try {
-        // Check if attribute already exists in any language
-        const existingAttributes = await strapi
-          .documents("api::attribute.attribute")
-          .findMany({
-            filters: { key: attributeKey },
-            locale: "all",
-          });
-
-        if (existingAttributes && existingAttributes.length > 0) {
-          console.log(
-            `  - Attribute ${attributeKey} already exists in ${existingAttributes.length} languages, skipping...`,
-          );
-          continue;
-        }
-
-        // Step 1: Create the base attribute in English
+        // STEP 1: Create the base document in English (default locale)
         const baseAttribute = await strapi
           .documents("api::attribute.attribute")
           .create({
             data: {
               key: attributeKey,
               category: attributeData.category,
-              subcategory: attributeData.subcategory || null,
+              subcategory: attributeData.subcategory,
               selectionType: attributeData.selectionType,
               sortOrder: attributeData.sortOrder,
               isActive: true,
-              label: attributeData.labels.en.label,
-              description: attributeData.labels.en.description,
+              label: attributeData.label || attributeKey,
+              description: attributeData.description || "",
             },
-            locale: "en",
+            locale: "en", // Create in default locale first
           });
 
-        console.log(`  - Created base attribute: ${attributeKey} (en)`);
-        createdAttributesCount++;
+        console.log(
+          `  - Created base attribute: ${attributeKey} (documentId: ${baseAttribute.documentId})`,
+        );
 
-        // Step 2: Create localizations for other languages
-        const otherLanguages = ["lt", "lv", "et", "pl", "de", "ru"];
-        for (const lang of otherLanguages) {
+        // STEP 2: Create localizations for other languages using update()
+        for (const lang of languages.filter((l) => l !== "en")) {
           try {
-            await strapi.documents("api::attribute.attribute").create({
+            await strapi.documents("api::attribute.attribute").update({
+              documentId: baseAttribute.documentId, // Same documentId to create localization
+              locale: lang, // Different locale
               data: {
-                key: attributeKey,
-                category: attributeData.category,
-                subcategory: attributeData.subcategory || null,
-                selectionType: attributeData.selectionType,
-                sortOrder: attributeData.sortOrder,
-                isActive: true,
-                label: attributeData.labels[lang].label,
-                description: attributeData.labels[lang].description,
+                label: attributeData.label || attributeKey,
+                description: attributeData.description || "",
               },
-              locale: lang,
             });
-            console.log(`    - Created ${lang} localization`);
-          } catch (langError) {
-            console.warn(
-              `    - Warning: Could not create ${lang} localization:`,
-              langError.message,
+            console.log(`  - Created ${lang} localization for ${attributeKey}`);
+          } catch (error) {
+            console.log(
+              `  - Warning: Could not create ${lang} localization:`,
+              error.message,
             );
           }
         }
 
-        // Step 3: Create attribute values
-        if (attributeData.values && attributeData.values.length > 0) {
-          console.log(
-            `  - Creating ${attributeData.values.length} values for ${attributeKey}`,
-          );
+        // Create attribute values for this attribute
+        const values = attributeData.values || [];
+        console.log(`  - Creating ${values.length} values for ${attributeKey}`);
 
-          for (let i = 0; i < attributeData.values.length; i++) {
-            const valueKey = attributeData.values[i];
-            const translations = completeValueTranslations[valueKey];
+        for (const valueKey of values) {
+          const valueTranslations = completeValueTranslations[valueKey];
+          if (!valueTranslations) {
+            console.log(
+              `    - Warning: No translations found for value ${valueKey}`,
+            );
+            continue;
+          }
 
-            if (!translations) {
-              console.warn(
-                `    - Warning: No translations found for value: ${valueKey}`,
-              );
-              continue;
-            }
+          try {
+            // STEP 1: Create the base value document in English
+            const baseValue = await strapi
+              .documents("api::attribute-value.attribute-value")
+              .create({
+                data: {
+                  key: valueKey,
+                  attribute: baseAttribute.documentId, // Reference to the attribute
+                  sortOrder: 0,
+                  isActive: true,
+                  label: valueTranslations.en || valueKey,
+                },
+                locale: "en", // Create in default locale first
+              });
 
-            try {
-              // Check if value already exists in any language
-              const existingValues = await strapi
-                .documents("api::attribute-value.attribute-value")
-                .findMany({
-                  filters: {
-                    key: valueKey,
-                    attribute: baseAttribute.id,
-                  },
-                  locale: "all",
-                });
+            console.log(
+              `      - Created value: ${valueKey} (${valueTranslations.en || valueKey}) - documentId: ${baseValue.documentId}`,
+            );
 
-              if (existingValues && existingValues.length > 0) {
+            // STEP 2: Create localizations for other languages using update()
+            for (const lang of languages.filter((l) => l !== "en")) {
+              try {
+                await strapi
+                  .documents("api::attribute-value.attribute-value")
+                  .update({
+                    documentId: baseValue.documentId, // Same documentId to create localization
+                    locale: lang, // Different locale
+                    data: {
+                      label:
+                        valueTranslations[lang] ||
+                        valueTranslations.en ||
+                        valueKey,
+                    },
+                  });
                 console.log(
-                  `    - Value ${valueKey} already exists, skipping...`,
+                  `        - Created ${lang} localization: ${valueTranslations[lang] || valueTranslations.en}`,
                 );
-                continue;
+              } catch (error) {
+                console.log(
+                  `        - Warning: Could not create ${lang} localization:`,
+                  error.message,
+                );
               }
-
-              // Step 3a: Create the base value in English
-              const baseValue = await strapi
-                .documents("api::attribute-value.attribute-value")
-                .create({
-                  data: {
-                    key: valueKey,
-                    attribute: baseAttribute.id,
-                    sortOrder: i + 1,
-                    isActive: true,
-                    label: translations.en,
-                  },
-                  locale: "en",
-                });
-
-              console.log(
-                `      - Created base value: ${valueKey} (${translations.en})`,
-              );
-              createdValuesCount++;
-
-              // Step 3b: Create localizations for other languages
-              for (const lang of otherLanguages) {
-                if (translations[lang]) {
-                  try {
-                    await strapi
-                      .documents("api::attribute-value.attribute-value")
-                      .create({
-                        data: {
-                          key: valueKey,
-                          attribute: baseAttribute.id,
-                          sortOrder: i + 1,
-                          isActive: true,
-                          label: translations[lang],
-                        },
-                        locale: lang,
-                      });
-                    console.log(
-                      `        - Created ${lang} localization: ${translations[lang]}`,
-                    );
-                  } catch (valueLangError) {
-                    console.warn(
-                      `        - Warning: Could not create ${lang} value:`,
-                      valueLangError.message,
-                    );
-                  }
-                }
-              }
-            } catch (valueError) {
-              console.error(
-                `    - Error creating value ${valueKey}:`,
-                valueError.message,
-              );
             }
+          } catch (error) {
+            console.log(
+              `      - Error creating value ${valueKey}:`,
+              error.message,
+            );
           }
         }
       } catch (error) {
-        console.error(
-          `Error processing attribute ${attributeKey}:`,
+        console.log(
+          `  - Error creating attribute ${attributeKey}:`,
           error.message,
         );
       }
     }
 
-    console.log("\n✅ Attribute population completed!");
-    console.log(
-      `📊 Created ${createdAttributesCount} attributes and ${createdValuesCount} values`,
-    );
-    console.log("\nYou can now use these attributes in your products.");
-  } catch (error) {
-    console.error("❌ Error during population:", error);
-  } finally {
-    // Only destroy if we created the instance
-    if (strapi && !global.strapi) {
+    console.log("✅ Attribute population completed successfully!");
+
+    // If we created a standalone Strapi instance, close it
+    if (!global.strapi) {
       await strapi.destroy();
     }
+  } catch (error) {
+    console.error("❌ Error during attribute population:", error);
+
+    // If we created a standalone Strapi instance, close it
+    if (!global.strapi && strapi) {
+      await strapi.destroy();
+    }
+
+    process.exit(1);
   }
 }
 
-// Export for use in other scripts or run directly
+module.exports = { populateAttributes };
+
+// If run directly
 if (require.main === module) {
   populateAttributes();
 }
-
-module.exports = { populateAttributes };
