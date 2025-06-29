@@ -66,30 +66,34 @@ async function populateAttributes() {
         );
 
         // STEP 2: Create localizations using update() with same documentId
+        const attributeLocalizations = { en: baseAttribute };
         for (const lang of languages.filter((l) => l !== "en")) {
           try {
-            await strapi.documents("api::attribute.attribute").update({
-              documentId: baseAttribute.documentId, // Same documentId = linked localization
-              locale: lang, // Different locale
-              data: {
-                // Include non-localized fields
-                key: attributeKey,
-                category: attributeData.category,
-                subcategory: attributeData.subcategory,
-                selectionType: attributeData.selectionType,
-                sortOrder: attributeData.sortOrder,
-                isActive: true,
-                // Include localized fields
-                label:
-                  attributeData.labels?.[lang]?.label ||
-                  attributeData.labels?.en?.label ||
-                  attributeKey,
-                description:
-                  attributeData.labels?.[lang]?.description ||
-                  attributeData.labels?.en?.description ||
-                  "",
-              },
-            });
+            const localizedAttribute = await strapi
+              .documents("api::attribute.attribute")
+              .update({
+                documentId: baseAttribute.documentId, // Same documentId = linked localization
+                locale: lang, // Different locale
+                data: {
+                  // Include non-localized fields
+                  key: attributeKey,
+                  category: attributeData.category,
+                  subcategory: attributeData.subcategory,
+                  selectionType: attributeData.selectionType,
+                  sortOrder: attributeData.sortOrder,
+                  isActive: true,
+                  // Include localized fields
+                  label:
+                    attributeData.labels?.[lang]?.label ||
+                    attributeData.labels?.en?.label ||
+                    attributeKey,
+                  description:
+                    attributeData.labels?.[lang]?.description ||
+                    attributeData.labels?.en?.description ||
+                    "",
+                },
+              });
+            attributeLocalizations[lang] = localizedAttribute;
             console.log(`  - Created ${lang} localization for ${attributeKey}`);
           } catch (error) {
             console.log(
@@ -119,7 +123,7 @@ async function populateAttributes() {
               .create({
                 data: {
                   key: valueKey,
-                  attribute: baseAttribute.id, // Use id for non-localized relation
+                  attribute: attributeLocalizations.en.id, // Link to English attribute
                   sortOrder: 0,
                   isActive: true,
                   label: valueTranslations.en || valueKey,
@@ -134,27 +138,30 @@ async function populateAttributes() {
             // Create localizations using update() with same documentId
             for (const lang of languages.filter((l) => l !== "en")) {
               try {
-                await strapi
-                  .documents("api::attribute-value.attribute-value")
-                  .update({
-                    documentId: baseValue.documentId, // Same documentId = linked localization
-                    locale: lang, // Different locale
-                    data: {
-                      // Include non-localized fields
-                      key: valueKey,
-                      attribute: baseAttribute.id, // Use id for non-localized relation
-                      sortOrder: 0,
-                      isActive: true,
-                      // Include localized fields
-                      label:
-                        valueTranslations[lang] ||
-                        valueTranslations.en ||
-                        valueKey,
-                    },
-                  });
-                console.log(
-                  `        - Created ${lang} localization: ${valueTranslations[lang] || valueTranslations.en}`,
-                );
+                const localizedAttribute = attributeLocalizations[lang];
+                if (localizedAttribute) {
+                  await strapi
+                    .documents("api::attribute-value.attribute-value")
+                    .update({
+                      documentId: baseValue.documentId, // Same documentId = linked localization
+                      locale: lang, // Different locale
+                      data: {
+                        // Include non-localized fields
+                        key: valueKey,
+                        attribute: localizedAttribute.id, // Link to localized attribute
+                        sortOrder: 0,
+                        isActive: true,
+                        // Include localized fields
+                        label:
+                          valueTranslations[lang] ||
+                          valueTranslations.en ||
+                          valueKey,
+                      },
+                    });
+                  console.log(
+                    `        - Created ${lang} localization: ${valueTranslations[lang] || valueTranslations.en}`,
+                  );
+                }
               } catch (error) {
                 console.log(
                   `        - Warning: Could not create ${lang} value localization:`,
