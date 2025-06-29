@@ -95,7 +95,7 @@
       "mappedBy": "attribute",
       "pluginOptions": {
         "i18n": {
-          "localized": false
+          "localized": true
         }
       }
     }

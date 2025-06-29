@@ -462,7 +462,7 @@ export interface ApiAttributeAttribute extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
-          localized: false;
+          localized: true;
         };
       }>;
     category: Schema.Attribute.String &
