@@ -44,7 +44,7 @@ async function populateAttributes() {
       console.log(`Creating attribute: ${attributeKey}`);
 
       try {
-        // STEP 1: Create the base document in English (default locale)
+        // STEP 1: Create the base attribute document in English first
         const baseAttribute = await strapi
           .documents("api::attribute.attribute")
           .create({
@@ -58,18 +58,18 @@ async function populateAttributes() {
               label: attributeData.label || attributeKey,
               description: attributeData.description || "",
             },
-            locale: "en", // Create in default locale first
+            locale: "en",
           });
 
         console.log(
           `  - Created base attribute: ${attributeKey} (documentId: ${baseAttribute.documentId})`,
         );
 
-        // STEP 2: Create localizations for other languages using update()
+        // STEP 2: Create localizations using update() with same documentId
         for (const lang of languages.filter((l) => l !== "en")) {
           try {
             await strapi.documents("api::attribute.attribute").update({
-              documentId: baseAttribute.documentId, // Same documentId to create localization
+              documentId: baseAttribute.documentId, // Same documentId = linked localization
               locale: lang, // Different locale
               data: {
                 label: attributeData.label || attributeKey,
@@ -85,7 +85,7 @@ async function populateAttributes() {
           }
         }
 
-        // Create attribute values for this attribute
+        // STEP 3: Create attribute values for this attribute
         const values = attributeData.values || [];
         console.log(`  - Creating ${values.length} values for ${attributeKey}`);
 
@@ -99,31 +99,31 @@ async function populateAttributes() {
           }
 
           try {
-            // STEP 1: Create the base value document in English
+            // Create the base value document in English first
             const baseValue = await strapi
               .documents("api::attribute-value.attribute-value")
               .create({
                 data: {
                   key: valueKey,
-                  attribute: baseAttribute.documentId, // Reference to the attribute
+                  attribute: baseAttribute.id, // Use id for non-localized relation
                   sortOrder: 0,
                   isActive: true,
                   label: valueTranslations.en || valueKey,
                 },
-                locale: "en", // Create in default locale first
+                locale: "en",
               });
 
             console.log(
               `      - Created value: ${valueKey} (${valueTranslations.en || valueKey}) - documentId: ${baseValue.documentId}`,
             );
 
-            // STEP 2: Create localizations for other languages using update()
+            // Create localizations using update() with same documentId
             for (const lang of languages.filter((l) => l !== "en")) {
               try {
                 await strapi
                   .documents("api::attribute-value.attribute-value")
                   .update({
-                    documentId: baseValue.documentId, // Same documentId to create localization
+                    documentId: baseValue.documentId, // Same documentId = linked localization
                     locale: lang, // Different locale
                     data: {
                       label:
@@ -137,7 +137,7 @@ async function populateAttributes() {
                 );
               } catch (error) {
                 console.log(
-                  `        - Warning: Could not create ${lang} localization:`,
+                  `        - Warning: Could not create ${lang} value localization:`,
                   error.message,
                 );
               }
