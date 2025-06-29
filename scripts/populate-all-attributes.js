@@ -55,8 +55,8 @@ async function populateAttributes() {
               selectionType: attributeData.selectionType,
               sortOrder: attributeData.sortOrder,
               isActive: true,
-              label: attributeData.label || attributeKey,
-              description: attributeData.description || "",
+              label: attributeData.labels?.en?.label || attributeKey,
+              description: attributeData.labels?.en?.description || "",
             },
             locale: "en",
           });
@@ -80,8 +80,14 @@ async function populateAttributes() {
                 sortOrder: attributeData.sortOrder,
                 isActive: true,
                 // Include localized fields
-                label: attributeData.label || attributeKey,
-                description: attributeData.description || "",
+                label:
+                  attributeData.labels?.[lang]?.label ||
+                  attributeData.labels?.en?.label ||
+                  attributeKey,
+                description:
+                  attributeData.labels?.[lang]?.description ||
+                  attributeData.labels?.en?.description ||
+                  "",
               },
             });
             console.log(`  - Created ${lang} localization for ${attributeKey}`);
