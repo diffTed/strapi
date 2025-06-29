@@ -21,13 +21,14 @@ module.exports = ({ env }) => ({
     },
   },
   meilisearch: {
+    enabled: true,
     config: {
       // Meilisearch host and API key
       host: env("MEILISEARCH_HOST", "http://localhost:7700"),
       apiKey: env("MEILISEARCH_API_KEY", ""),
 
-      // Product indices for each language
-      product_en: {
+      // Product indices for each language using the API format
+      "api::product.product_en": {
         indexName: "product_en",
         entriesQuery: {
           locale: "en",
@@ -52,7 +53,7 @@ module.exports = ({ env }) => ({
           sortableAttributes: ["title", "updatedAt"],
         },
       },
-      product_lt: {
+      "api::product.product_lt": {
         indexName: "product_lt",
         entriesQuery: {
           locale: "lt",
@@ -77,7 +78,7 @@ module.exports = ({ env }) => ({
           sortableAttributes: ["title", "updatedAt"],
         },
       },
-      product_lv: {
+      "api::product.product_lv": {
         indexName: "product_lv",
         entriesQuery: {
           locale: "lv",
@@ -102,7 +103,7 @@ module.exports = ({ env }) => ({
           sortableAttributes: ["title", "updatedAt"],
         },
       },
-      product_et: {
+      "api::product.product_et": {
         indexName: "product_et",
         entriesQuery: {
           locale: "et",
@@ -127,7 +128,7 @@ module.exports = ({ env }) => ({
           sortableAttributes: ["title", "updatedAt"],
         },
       },
-      product_pl: {
+      "api::product.product_pl": {
         indexName: "product_pl",
         entriesQuery: {
           locale: "pl",
@@ -152,7 +153,7 @@ module.exports = ({ env }) => ({
           sortableAttributes: ["title", "updatedAt"],
         },
       },
-      product_de: {
+      "api::product.product_de": {
         indexName: "product_de",
         entriesQuery: {
           locale: "de",
@@ -177,7 +178,7 @@ module.exports = ({ env }) => ({
           sortableAttributes: ["title", "updatedAt"],
         },
       },
-      product_ru: {
+      "api::product.product_ru": {
         indexName: "product_ru",
         entriesQuery: {
           locale: "ru",
