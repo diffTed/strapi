@@ -10,6 +10,9 @@
   "options": {
     "draftAndPublish": false
   },
+  "settings": {
+    "mainField": "label"
+  },
   "pluginOptions": {
     "i18n": {
       "localized": true
