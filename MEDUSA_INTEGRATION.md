@@ -349,9 +349,63 @@ const product = {
 - Use API tokens for automated synchronization processes
 - Content managers can view the fields but cannot edit them directly
 
+## Meilisearch Integration
+
+This project includes integration with Meilisearch for powerful, multilingual search capabilities. See [MEILISEARCH_INTEGRATION.md](./MEILISEARCH_INTEGRATION.md) for detailed documentation.
+
+### Architecture Overview
+
+The search architecture uses:
+
+- **Strapi**: Manages and indexes product content (descriptions, attributes, etc.)
+- **Medusa**: Manages and indexes commerce data (prices, inventory, publication status)
+- **Meilisearch**: Combines data from both systems for unified search
+
+### Key Implementation Details
+
+1. **Separate Language Indices**:
+
+   - Each language has its own index (product_en, product_lt, etc.)
+   - Content is automatically indexed in the appropriate language index
+
+2. **Medusa Integration**:
+
+   - Products are linked via the `medusaId` field
+   - Medusa directly updates its fields in Meilisearch indices
+   - Frontend filters by Medusa publication status
+
+3. **Automatic Synchronization**:
+   - Strapi content changes are automatically indexed
+   - Medusa updates its own fields directly in Meilisearch
+
+### Example Frontend Integration
+
+```javascript
+// Initialize Meilisearch client
+const searchClient = new MeiliSearch({
+  host: "http://your-meilisearch-host:7700",
+  apiKey: "your-public-key",
+});
+
+// Get product data from both systems
+async function getProductData(query, locale = "en") {
+  // Search in the appropriate language index
+  const index = searchClient.index(`product_${locale}`);
+
+  // Search with Medusa publication filter
+  const results = await index.search(query, {
+    filter: "published = true",
+  });
+
+  return results;
+}
+```
+
 ## Future Enhancements
 
 - Automated sync between Medusa and Strapi
 - Webhook integration for real-time updates
 - Bulk import/export functionality
 - Advanced mapping configurations
+- Enhanced search capabilities with faceted filtering
+- Search analytics and insights
