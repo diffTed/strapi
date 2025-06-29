@@ -72,6 +72,14 @@ async function populateAttributes() {
               documentId: baseAttribute.documentId, // Same documentId = linked localization
               locale: lang, // Different locale
               data: {
+                // Include non-localized fields
+                key: attributeKey,
+                category: attributeData.category,
+                subcategory: attributeData.subcategory,
+                selectionType: attributeData.selectionType,
+                sortOrder: attributeData.sortOrder,
+                isActive: true,
+                // Include localized fields
                 label: attributeData.label || attributeKey,
                 description: attributeData.description || "",
               },
@@ -126,6 +134,12 @@ async function populateAttributes() {
                     documentId: baseValue.documentId, // Same documentId = linked localization
                     locale: lang, // Different locale
                     data: {
+                      // Include non-localized fields
+                      key: valueKey,
+                      attribute: baseAttribute.id, // Use id for non-localized relation
+                      sortOrder: 0,
+                      isActive: true,
+                      // Include localized fields
                       label:
                         valueTranslations[lang] ||
                         valueTranslations.en ||
