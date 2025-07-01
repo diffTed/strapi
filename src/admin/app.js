@@ -3,15 +3,8 @@ export default {
     locales: ["en"],
   },
   bootstrap(app) {
-    // Customize the product edit view
-    app.injectContentManagerComponent("editView", "right-links", {
-      name: "product-attributes-helper",
-      Component: async () => {
-        const component = await import(
-          "./extensions/components/ProductAttributesHelper"
-        );
-        return component;
-      },
-    });
+    // Admin customizations for Strapi 5
+    // Note: injectContentManagerComponent is not available in Strapi 5
+    // Product attributes are now handled through standard relation fields
   },
 };
