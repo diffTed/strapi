@@ -1,6 +1,11 @@
 export default {
   config: {
-    locales: ["en"],
+    locales: ["en", "ar", "ru", "lt", "lv", "et", "pl", "de"],
+    translations: {
+      en: {
+        "app.components.LeftMenu.navbrand.title": "nufaar",
+      },
+    },
   },
   bootstrap(app) {
     // Admin customizations for Strapi 5

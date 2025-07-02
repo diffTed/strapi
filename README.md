@@ -1,44 +1,173 @@
-# Run locally
+# Perfume Store - Strapi Backend
 
+A Strapi 5 backend for a multilingual perfume e-commerce platform with Medusa 2.0 integration.
+
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Run locally with Railway
 railway login
 railway link
-railway run npm run develop - runs locally
-railway run npm run populate:attributes - populates database with attributes
+railway run npm run develop
 
-# Strapi example
-
-This example deploys self-hosted version of [Strapi](https://strapi.io/). Internally it uses a PostgreSQL database to store the data.
-
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/strapi?referralCode=milo)
+# Or run locally without Railway
+npm run develop
+```
 
 ## ✨ Features
 
-- Strapi
-- Postgres
+- **Strapi 5** with PostgreSQL database
+- **Multi-language support** (English, Arabic, Russian, Lithuanian, Latvian, Estonian, Polish, German)
+- **Medusa 2.0 integration** for e-commerce functionality
+- **Multi-select custom fields** for product attributes
+- **Railway deployment** ready
+- **SEO optimization** with meta fields
+- **Brand and category management**
 
-## 💁‍♀️ How to use
+## 🏗️ Architecture
 
-- Click the Railway button 👆
-- Add the environment variables
-- Media will automatically be persisted between deploys!
+### Content Types
 
-## 💻 Developing locally
+| Content Type | Description                                       | i18n Support |
+| ------------ | ------------------------------------------------- | ------------ |
+| **Product**  | Main product content with multi-select attributes | ✅ Yes       |
+| **Category** | Product categories with hierarchical structure    | ✅ Yes       |
+| **Brand**    | Perfume brands                                    | ✅ Yes       |
+| **Page**     | Static content pages                              | ✅ Yes       |
 
-When developing locally this Strapi template will connect to the Postgres server from its public [TCP Proxy](https://docs.railway.app/deploy/exposing-your-app#tcp-proxying)
+### Product Attributes System
 
-- Enable the feature flag `Template Service Eject` in the [Feature Flags](https://railway.app/account/feature-flags) menu
-- Within the service settings of the Strapi service click the `Eject` button on the upstream repository
-- Clone that newly created repository locally
-- Install Strapi's dependencies with `yarn install` or `npm install`
-- Install the Railway CLI
-  - Instructions for that can be found [here](https://docs.railway.app/develop/cli#installation)
-  - If this is your first time using the CLI make sure to login with `railway login`
-- Within the local repository run `railway link` to link the local repository to the Strapi service on Railway
-- Start Strapi for development with `railway run yarn run develop` or `railway run npm run develop`
-  - This command will run Strapi in development mode with the service variables available locally
-- Open your browser to `http://127.0.0.1:1337/admin`
+The product system uses **multi-select custom fields** instead of traditional relations:
 
-## 📝 Notes
+- **Country of Origin**: Single selection from predefined countries
+- **Perfume Type**: Single selection (EDP, EDT, Cologne, etc.)
+- **Custom Attributes**: Easy to add new multi-select fields
 
-- After your app is deployed, visit the `/admin` endpoint to create your admin user.
-- If you want to use npm with this project make sure you delete the `yarn.lock` file after you have ran `npm install`
+#### Multi-Select Format
+
+All multi-select fields use the `label:key` format:
+
+- **Admin UI**: Shows English labels (e.g., "United Arab Emirates")
+- **Database**: Stores keys (e.g., "uae")
+- **Frontend**: Receives keys for translation
+
+Example:
+
+```json
+{
+  "country_of_origin": ["uae"],
+  "perfume_type": ["edp"]
+}
+```
+
+## 🌐 Localization
+
+The system supports 7 languages:
+
+- English (en) - Default
+- Arabic (ar)
+- Russian (ru)
+- Lithuanian (lt)
+- Latvian (lv)
+- Estonian (et)
+- Polish (pl)
+- German (de)
+
+**Translation Strategy:**
+
+- Admin interface: English labels
+- Frontend: Translation keys for multi-language support
+- No translation complexity in Strapi
+
+## 🔧 Development
+
+### Adding New Multi-Select Fields
+
+1. Edit `src/api/product/content-types/product/schema.json`
+2. Add new custom field with multi-select plugin
+3. Use `label:key` format for options
+
+Example:
+
+```json
+"new_attribute": {
+  "type": "customField",
+  "customField": "plugin::multi-select.multi-select",
+  "options": [
+    "Option 1:option1",
+    "Option 2:option2"
+  ],
+  "required": true,
+  "max": 1
+}
+```
+
+### API Endpoints
+
+- **Products**: `/api/products`
+- **Categories**: `/api/categories`
+- **Brands**: `/api/brands`
+- **Pages**: `/api/pages`
+
+All endpoints support:
+
+- Localization via `?locale=xx` parameter
+- Population via `?populate=*`
+- Filtering and sorting
+
+## 🚀 Deployment
+
+### Railway (Recommended)
+
+1. Click the Railway button above
+2. Add environment variables
+3. Deploy automatically
+
+### Manual Deployment
+
+1. Set up PostgreSQL database
+2. Configure environment variables
+3. Run `npm run build`
+4. Start with `npm start`
+
+## 📝 Environment Variables
+
+```env
+DATABASE_URL=postgresql://...
+JWT_SECRET=your-jwt-secret
+ADMIN_JWT_SECRET=your-admin-jwt-secret
+API_TOKEN_SALT=your-api-token-salt
+APP_KEYS=key1,key2,key3,key4
+```
+
+## 🔄 Medusa Integration
+
+The system integrates with Medusa 2.0 for e-commerce functionality:
+
+- **Product Sync**: Automatic product creation/updates
+- **Status Management**: Draft, proposed, published, rejected
+- **ID Mapping**: Medusa IDs for seamless integration
+
+## 📊 Database Schema
+
+The system uses a simplified schema without complex attribute relations:
+
+- **Products**: Direct multi-select fields for attributes
+- **Categories**: Hierarchical structure
+- **Brands**: Simple brand management
+- **Pages**: Static content management
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.

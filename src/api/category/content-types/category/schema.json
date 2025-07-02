@@ -85,12 +85,12 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::product.product",
-      "mappedBy": "categories",
       "pluginOptions": {
         "i18n": {
           "localized": false
         }
-      }
+      },
+      "mappedBy": "categories"
     }
   }
 }

@@ -45,17 +45,16 @@
         }
       }
     },
-
     "products": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::product.product",
-      "mappedBy": "brand",
       "pluginOptions": {
         "i18n": {
           "localized": false
         }
-      }
+      },
+      "mappedBy": "brand"
     },
     "isActive": {
       "type": "boolean",

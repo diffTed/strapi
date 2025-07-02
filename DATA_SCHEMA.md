@@ -4,39 +4,65 @@ This document provides an overview of all content types in the perfume store pro
 
 ## Content Types Overview
 
-| Content Type    | Description                                      | i18n Support |
-| --------------- | ------------------------------------------------ | ------------ |
-| Product         | Main product content type for perfumes           | ✅ Yes       |
-| Category        | Product categories with hierarchical structure   | ✅ Yes       |
-| Attribute       | Product characteristics (e.g., fragrance family) | ✅ Yes       |
-| Attribute Value | Specific values for attributes (e.g., "Floral")  | ✅ Yes       |
-| Brand           | Perfume brands                                   | ✅ Yes       |
-| Page            | Static content pages                             | ✅ Yes       |
+| Content Type | Description                                    | i18n Support |
+| ------------ | ---------------------------------------------- | ------------ |
+| Product      | Main product content type for perfumes         | ✅ Yes       |
+| Category     | Product categories with hierarchical structure | ✅ Yes       |
+| Brand        | Perfume brands                                 | ✅ Yes       |
+| Page         | Static content pages                           | ✅ Yes       |
 
 ## Product Schema
 
-The central content type for perfume products.
+The central content type for perfume products with integrated multi-select attributes.
 
 ### Fields
 
-| Field          | Type      | i18n | Description                             |
-| -------------- | --------- | ---- | --------------------------------------- |
-| title          | String    | ✅   | Product name                            |
-| description    | Rich Text | ✅   | Detailed product description            |
-| seoTitle       | String    | ✅   | SEO-optimized title                     |
-| seoDescription | Text      | ✅   | SEO-optimized description               |
-| slug           | UID       | ✅   | URL-friendly identifier                 |
-| medusa_id      | String    | ❌   | Medusa product ID (non-editable)        |
-| medusa_status  | Enum      | ❌   | Status in Medusa (draft/published/etc.) |
+| Field             | Type         | i18n | Description                             |
+| ----------------- | ------------ | ---- | --------------------------------------- |
+| title             | String       | ✅   | Product name                            |
+| description       | Rich Text    | ✅   | Detailed product description            |
+| seoTitle          | String       | ✅   | SEO-optimized title                     |
+| seoDescription    | Text         | ✅   | SEO-optimized description               |
+| slug              | UID          | ✅   | URL-friendly identifier                 |
+| medusa_id         | String       | ❌   | Medusa product ID (non-editable)        |
+| medusa_status     | Enum         | ❌   | Status in Medusa (draft/published/etc.) |
+| country_of_origin | Multi-Select | ❌   | Country of origin (single selection)    |
+| perfume_type      | Multi-Select | ❌   | Perfume type (single selection)         |
+
+### Multi-Select Attributes
+
+The product uses custom multi-select fields instead of traditional relations:
+
+#### Country of Origin
+
+- **Type**: Single selection
+- **Options**:
+  - "United Arab Emirates:uae"
+  - "Saudi Arabia:saudi-arabia"
+  - "Qatar:qatar"
+  - "Kuwait:kuwait"
+  - "Bahrain:bahrain"
+  - "Oman:oman"
+
+#### Perfume Type
+
+- **Type**: Single selection
+- **Options**:
+  - "Eau de Parfum (EDP):edp"
+  - "Eau de Toilette (EDT):edt"
+  - "Eau de Cologne:edc"
+  - "Parfum (Extrait):parfum"
+  - "Attar / Perfume Oil:attar"
+  - "Solid Perfume:solid-perfume"
+  - "Body Spray:body-spray"
+  - "Hair Mist:hair-mist"
 
 ### Relations
 
-| Relation        | Type         | Target         | Description               |
-| --------------- | ------------ | -------------- | ------------------------- |
-| categories      | Many-to-Many | Category       | Product categories        |
-| attributes      | Many-to-Many | Attribute      | Product attributes        |
-| attributeValues | Many-to-Many | AttributeValue | Specific attribute values |
-| brand           | Many-to-One  | Brand          | Product brand             |
+| Relation   | Type         | Target   | Description        |
+| ---------- | ------------ | -------- | ------------------ |
+| categories | Many-to-Many | Category | Product categories |
+| brand      | Many-to-One  | Brand    | Product brand      |
 
 ## Category Schema
 
@@ -59,43 +85,6 @@ Hierarchical structure for product categorization.
 | parent   | Many-to-One  | Category | Parent category           |
 | children | One-to-Many  | Category | Child categories          |
 | products | Many-to-Many | Product  | Products in this category |
-
-## Attribute Schema
-
-Product characteristics/properties (e.g., fragrance family, concentration).
-
-### Fields
-
-| Field       | Type   | i18n | Description                       |
-| ----------- | ------ | ---- | --------------------------------- |
-| name        | String | ✅   | Attribute name                    |
-| description | Text   | ✅   | Attribute description             |
-| key         | String | ❌   | Unique identifier (non-localized) |
-
-### Relations
-
-| Relation | Type         | Target         | Description                        |
-| -------- | ------------ | -------------- | ---------------------------------- |
-| values   | One-to-Many  | AttributeValue | Possible values for this attribute |
-| products | Many-to-Many | Product        | Products with this attribute       |
-
-## Attribute Value Schema
-
-Specific values for attributes (e.g., "Floral" for fragrance family).
-
-### Fields
-
-| Field | Type   | i18n | Description                       |
-| ----- | ------ | ---- | --------------------------------- |
-| value | String | ✅   | The attribute value               |
-| key   | String | ❌   | Unique identifier (non-localized) |
-
-### Relations
-
-| Relation  | Type         | Target    | Description              |
-| --------- | ------------ | --------- | ------------------------ |
-| attribute | Many-to-One  | Attribute | The parent attribute     |
-| products  | Many-to-Many | Product   | Products with this value |
 
 ## Brand Schema
 
@@ -131,77 +120,113 @@ Static content pages (e.g., About Us, Privacy Policy).
 | seoTitle       | String    | ✅   | SEO-optimized title       |
 | seoDescription | Text      | ✅   | SEO-optimized description |
 
-## Multilingual Support
+## Multi-Select System
 
-All content types support localization in 7 languages:
+### Format: `label:key`
 
-- English (en) - Default
-- Lithuanian (lt)
-- Latvian (lv)
-- Estonian (et)
-- Polish (pl)
-- German (de)
-- Russian (ru)
+All multi-select fields use the `label:key` format:
 
-### Implementation Details
+- **label**: What appears in the admin UI (English text)
+- **key**: What gets stored in the database (for frontend translation)
 
-- Each localizable field can have different content per language
-- Relations between content types are not localized (same across all languages)
-- Slugs are localized to support language-specific URLs
-- The `key` fields in Attribute and AttributeValue are not localized to maintain data integrity
+### Benefits
 
-## Data Flow and Relationships
+1. **Simplified Schema**: No complex attribute relations
+2. **Easy Management**: Direct field editing in product form
+3. **Translation Ready**: Keys for frontend translation
+4. **Flexible**: Easy to add new multi-select fields
 
-```mermaid
-graph TD
-    Product --> Brand
-    Product <--> Category
-    Product <--> Attribute
-    Product <--> AttributeValue
-    AttributeValue --> Attribute
-    Category --> Category[Parent Category]
+### Example Usage
+
+```json
+{
+  "title": "Sample Perfume",
+  "country_of_origin": ["uae"],
+  "perfume_type": ["edp"]
+}
 ```
 
-## Integration Points
+**Admin UI**: Shows "United Arab Emirates" and "Eau de Parfum (EDP)"
+**API Response**: Returns `["uae"]` and `["edp"]` for frontend translation
 
-### Medusa Integration
+## Multilingual Support
 
-Products and categories are synchronized with Medusa e-commerce:
+All content types support localization in 8 languages:
 
-- `medusa_id` field links Strapi products to Medusa products
-- `medusa_status` tracks publication status in Medusa
-- See [MEDUSA_INTEGRATION.md](./MEDUSA_INTEGRATION.md) for details
+- **English (en)** - Default language
+- **Arabic (ar)**
+- **Russian (ru)**
+- **Lithuanian (lt)**
+- **Latvian (lv)**
+- **Estonian (et)**
+- **Polish (pl)**
+- **German (de)**
 
-### Meilisearch Integration
+### Translation Strategy
 
-All content is indexed in Meilisearch for powerful search:
+- **Admin Interface**: English labels for multi-select fields
+- **Frontend**: Translation keys for multi-language support
+- **Content**: Full localization for titles, descriptions, etc.
 
-- Separate indices per language (product_en, product_lt, etc.)
-- Automatic indexing when content changes
-- See [MEILISEARCH_INTEGRATION.md](./MEILISEARCH_INTEGRATION.md) for details
+## API Endpoints
 
-## Best Practices
+### Products
 
-1. **Content Creation**:
+- `GET /api/products` - List all products
+- `GET /api/products/:id` - Get specific product
+- `POST /api/products` - Create product
+- `PUT /api/products/:id` - Update product
+- `DELETE /api/products/:id` - Delete product
 
-   - Always create content in the default language (English) first
-   - Use the translation interface to add other languages
+### Categories
 
-2. **Relations**:
+- `GET /api/categories` - List all categories
+- `GET /api/categories/:id` - Get specific category
 
-   - Set up relations in the default language view
-   - Relations will be shared across all languages
+### Brands
 
-3. **Slugs**:
+- `GET /api/brands` - List all brands
+- `GET /api/brands/:id` - Get specific brand
 
-   - Create language-specific slugs for better SEO
-   - Ensure slugs are unique within each language
+### Pages
 
-4. **Attributes and Values**:
+- `GET /api/pages` - List all pages
+- `GET /api/pages/:id` - Get specific page
 
-   - Use consistent keys for attributes and values
-   - Translate the display names but keep keys consistent
+### Query Parameters
 
-5. **SEO Fields**:
-   - Always fill in SEO fields for better search engine visibility
-   - Keep SEO descriptions under 160 characters
+All endpoints support:
+
+- `?locale=xx` - Specify language
+- `?populate=*` - Include relations
+- `?filters[field][$operator]=value` - Filter results
+- `?sort=field:order` - Sort results
+- `?pagination[page]=1&pagination[pageSize]=10` - Pagination
+
+## Database Schema
+
+The system uses a simplified schema:
+
+```
+products
+├── id, title, description, slug
+├── medusa_id, medusa_status
+├── country_of_origin (JSON array)
+├── perfume_type (JSON array)
+└── relations: categories, brand
+
+categories
+├── id, name, description, slug
+├── parent_category_id
+└── relations: children, products
+
+brands
+├── id, name, description, slug
+└── relations: products
+
+pages
+├── id, title, content, slug
+└── seo fields
+```
+
+This approach eliminates the need for complex attribute and attribute-value tables while maintaining full functionality and translation support.
