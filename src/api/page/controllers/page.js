@@ -48,6 +48,31 @@ module.exports = createCoreController("api::page.page", ({ strapi }) => ({
     }
   },
 
+  // Custom method to find pages by category
+  async findByCategory(ctx) {
+    const { category } = ctx.params;
+    const { locale = "en" } = ctx.query;
+
+    if (!category) {
+      return ctx.badRequest("Category is required");
+    }
+
+    try {
+      const pages = await strapi.documents("api::page.page").findMany({
+        filters: {
+          category,
+          isActive: true,
+        },
+        sort: { sortOrder: "asc" },
+        locale,
+      });
+
+      return { data: pages };
+    } catch (error) {
+      ctx.badRequest("Failed to fetch pages", { error: error.message });
+    }
+  },
+
   // Extend the default create method
   async create(ctx) {
     // Auto-generate slug if not provided

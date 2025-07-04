@@ -119,6 +119,17 @@ Static content pages (e.g., About Us, Privacy Policy).
 | slug           | UID       | ✅   | URL-friendly identifier   |
 | seoTitle       | String    | ✅   | SEO-optimized title       |
 | seoDescription | Text      | ✅   | SEO-optimized description |
+| isActive       | Boolean   | ❌   | Page visibility status    |
+| sortOrder      | Integer   | ❌   | Display order             |
+| category       | Enum      | ❌   | Page category             |
+
+### Category Options
+
+- **legal** - Legal pages (Privacy Policy, Terms, etc.)
+- **about** - About pages (About Us, Company Info, etc.)
+- **help** - Help/Support pages (FAQ, Contact Info, etc.)
+- **contact** - Contact pages
+- **general** - General pages (default)
 
 ## Multi-Select System
 
@@ -192,12 +203,28 @@ All content types support localization in 8 languages:
 
 - `GET /api/pages` - List all pages
 - `GET /api/pages/:id` - Get specific page
+- `GET /api/pages/slug/:slug` - Get page by slug
+- `GET /api/pages/category/:category` - Get pages by category
 
 ### Query Parameters
 
 All endpoints support:
 
 - `?locale=xx` - Specify language
+
+### Page Category Examples
+
+```bash
+# Get all legal pages in English
+GET /api/pages/category/legal?locale=en
+
+# Get all legal pages in Arabic
+GET /api/pages/category/legal?locale=ar
+
+# Get all about pages in German
+GET /api/pages/category/about?locale=de
+```
+
 - `?populate=*` - Include relations
 - `?filters[field][$operator]=value` - Filter results
 - `?sort=field:order` - Sort results

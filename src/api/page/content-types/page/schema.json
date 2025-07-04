@@ -82,6 +82,17 @@
           "localized": false
         }
       }
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": ["legal", "about", "help", "general"],
+      "default": "general",
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
     }
   }
 }

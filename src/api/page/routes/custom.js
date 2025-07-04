@@ -15,5 +15,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "GET",
+      path: "/pages/category/:category",
+      handler: "page.findByCategory",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };
