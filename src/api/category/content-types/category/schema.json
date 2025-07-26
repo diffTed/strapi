@@ -74,12 +74,22 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::category.category",
-      "mappedBy": "parent_category"
+      "mappedBy": "parent_category",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
     },
     "products": {
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::product.product",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      },
       "mappedBy": "categories"
     }
   }

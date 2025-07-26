@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   /**
@@ -16,5 +16,9 @@ module.exports = {
    * This gives you an opportunity to set up your data model,
    * run jobs, or perform some special logic.
    */
-  bootstrap(/*{ strapi }*/) {},
+  async bootstrap({ strapi }) {
+    // The Meilisearch plugin will automatically handle indexing products
+    // No additional custom logic needed for Medusa integration
+    // Medusa will directly update its fields in Meilisearch
+  },
 };

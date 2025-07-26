@@ -9,75 +9,61 @@ const { createCoreController } = require("@strapi/strapi").factories;
 module.exports = createCoreController(
   "api::category.category",
   ({ strapi }) => ({
-    async syncFromMedusa(ctx) {
-      const { medusa_id, name, description, medusa_handle, parent_medusa_id } =
-        ctx.request.body;
+    // Upsert method for Medusa sync - creates or updates category (like products)
+    async upsertByMedusaId(ctx) {
+      const { medusa_id, locale = "en", ...categoryData } = ctx.request.body;
 
       if (!medusa_id) {
-        return ctx.badRequest("medusa_id is required for sync operation");
+        return ctx.badRequest("medusa_id is required");
       }
 
       try {
-        // Check if category exists
-        const existingCategories = await strapi.entityService.findMany(
-          "api::category.category",
-          {
+        // Check if category already exists
+        const existingCategory = await strapi
+          .documents("api::category.category")
+          .findFirst({
             filters: { medusa_id },
-            populate: ["parent_category"],
-          },
-        );
+          });
 
-        let parent_category = null;
-        if (parent_medusa_id) {
-          const parentCategories = await strapi.entityService.findMany(
-            "api::category.category",
-            {
-              filters: { medusa_id: parent_medusa_id },
-              limit: 1,
-            },
-          );
-          if (parentCategories && parentCategories.length > 0) {
-            parent_category = parentCategories[0].id;
+        if (existingCategory) {
+          // Category exists - update the specific locale
+          const updateData = { ...categoryData };
+          if (locale === "en") {
+            // Only update non-localized fields for base locale
+            updateData.medusa_id = medusa_id; // Ensure medusa_id is preserved
           }
-        }
 
-        const categoryData = {
-          medusa_id,
-          medusa_handle,
-          parent_category,
-          name: name || "Untitled Category",
-          description: description || "",
-        };
+          const updatedCategory = await strapi
+            .documents("api::category.category")
+            .update({
+              documentId: existingCategory.documentId,
+              locale,
+              data: updateData,
+            });
 
-        if (existingCategories && existingCategories.length > 0) {
-          // Update existing category
-          const updatedCategory = await strapi.entityService.update(
-            "api::category.category",
-            existingCategories[0].id,
-            {
-              data: categoryData,
-              populate: ["parent_category", "child_categories"],
-            },
-          );
-
-          strapi.log.info(`Category updated from Medusa: ${medusa_id}`);
-          ctx.body = { category: updatedCategory, action: "updated" };
+          strapi.log.info(`Category updated: ${medusa_id} (${locale})`);
+          return { data: updatedCategory, action: "updated" };
         } else {
-          // Create new category
-          const newCategory = await strapi.entityService.create(
-            "api::category.category",
-            {
-              data: categoryData,
-              populate: ["parent_category", "child_categories"],
-            },
-          );
+          // Category doesn't exist - create new base document
+          if (locale !== "en") {
+            return ctx.badRequest(
+              "New categories must be created in the default locale (en) first",
+            );
+          }
 
-          strapi.log.info(`Category created from Medusa: ${medusa_id}`);
-          ctx.body = { category: newCategory, action: "created" };
+          const newCategory = await strapi
+            .documents("api::category.category")
+            .create({
+              data: { medusa_id, ...categoryData },
+              locale,
+            });
+
+          strapi.log.info(`Category created: ${medusa_id} (${locale})`);
+          return { data: newCategory, action: "created" };
         }
       } catch (error) {
-        strapi.log.error(`Category sync failed: ${error.message}`);
-        ctx.throw(500, `Failed to sync category: ${error.message}`);
+        strapi.log.error(`Category upsert failed: ${error.message}`);
+        ctx.throw(500, `Failed to upsert category: ${error.message}`);
       }
     },
   }),

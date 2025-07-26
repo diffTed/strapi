@@ -8,8 +8,7 @@
     "description": "Product content type for Medusa 2.0 integration"
   },
   "options": {
-    "draftAndPublish": true,
-    "timestamps": true
+    "draftAndPublish": true
   },
   "pluginOptions": {
     "i18n": {
@@ -77,7 +76,12 @@
     },
     "medusa_status": {
       "type": "enumeration",
-      "enum": ["draft", "published", "proposed", "rejected"],
+      "enum": [
+        "draft",
+        "proposed",
+        "published",
+        "rejected"
+      ],
       "default": "draft",
       "required": false,
       "pluginOptions": {
@@ -96,6 +100,54 @@
           "localized": false
         }
       }
+    },
+    "brand": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::brand.brand",
+      "inversedBy": "products",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "country_of_origin": {
+      "type": "customField",
+      "default": "[]",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      },
+      "options": [
+        "United Arab Emirates:uae",
+        "Saudi Arabia:saudi-arabia",
+        "Qatar:qatar",
+        "Kuwait:kuwait",
+        "Bahrain:bahrain",
+        "Oman:oman"
+      ],
+      "customField": "plugin::multi-select.multi-select",
+      "required": true,
+      "max": 1
+    },
+    "perfume_type": {
+      "type": "customField",
+      "default": "[]",
+      "options": [
+        "Eau de Parfum (EDP):edp",
+        "Eau de Toilette (EDT):edt",
+        "Eau de Cologne:edc",
+        "Parfum (Extrait):parfum",
+        "Attar / Perfume Oil:attar",
+        "Solid Perfume:solid-perfume",
+        "Body Spray:body-spray",
+        "Hair Mist:hair-mist"
+      ],
+      "required": true,
+      "max": 1,
+      "customField": "plugin::multi-select.multi-select"
     }
   }
 }
