@@ -24,5 +24,23 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "GET",
+      path: "/pages/subkey/:subkey",
+      handler: "page.findBySubkey",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: "GET",
+      path: "/pages/category/:category/subkey/:subkey",
+      handler: "page.findByCategoryAndSubkey",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

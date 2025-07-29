@@ -93,6 +93,24 @@
           "localized": false
         }
       }
+    },
+    "subkey": {
+      "type": "enumeration",
+      "enum": [
+        "terms",
+        "privacy",
+        "cookie",
+        "cancel",
+        "returns",
+        "accessibility",
+        "impressum",
+        "about"
+      ],
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
     }
   }
 }
