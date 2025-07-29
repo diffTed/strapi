@@ -73,6 +73,63 @@ module.exports = createCoreController("api::page.page", ({ strapi }) => ({
     }
   },
 
+  // Custom method to find page by subkey
+  async findBySubkey(ctx) {
+    const { subkey } = ctx.params;
+    const { locale = "en" } = ctx.query;
+
+    if (!subkey) {
+      return ctx.badRequest("Subkey is required");
+    }
+
+    try {
+      const page = await strapi.documents("api::page.page").findFirst({
+        filters: {
+          subkey,
+          isActive: true,
+        },
+        locale,
+      });
+
+      if (!page) {
+        return ctx.notFound("Page not found");
+      }
+
+      return { data: page };
+    } catch (error) {
+      ctx.badRequest("Failed to fetch page", { error: error.message });
+    }
+  },
+
+  // Custom method to find pages by category and subkey
+  async findByCategoryAndSubkey(ctx) {
+    const { category, subkey } = ctx.params;
+    const { locale = "en" } = ctx.query;
+
+    if (!category || !subkey) {
+      return ctx.badRequest("Both category and subkey are required");
+    }
+
+    try {
+      const page = await strapi.documents("api::page.page").findFirst({
+        filters: {
+          category,
+          subkey,
+          isActive: true,
+        },
+        locale,
+      });
+
+      if (!page) {
+        return ctx.notFound("Page not found");
+      }
+
+      return { data: page };
+    } catch (error) {
+      ctx.badRequest("Failed to fetch page", { error: error.message });
+    }
+  },
+
   // Extend the default create method
   async create(ctx) {
     // Auto-generate slug if not provided
