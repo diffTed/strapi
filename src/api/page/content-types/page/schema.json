@@ -104,7 +104,11 @@
         "returns",
         "accessibility",
         "impressum",
-        "about"
+        "vip",
+        "coupons",
+        "shipping",
+        "payments",
+        "giftcards"
       ],
       "pluginOptions": {
         "i18n": {
